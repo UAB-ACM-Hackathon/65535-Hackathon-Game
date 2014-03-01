@@ -1,0 +1,14 @@
+{
+  "name": " 65535G",
+  "description": "Game created for UAB ACM Hackathon",
+  "maintainers": [
+    {
+      "name": "Spence Sellers",
+      "email": "",
+      "web": "https://github.com/SpenceSellers"
+    }
+  ],
+  "dependencies": {
+    "express": ""
+  }
+}
