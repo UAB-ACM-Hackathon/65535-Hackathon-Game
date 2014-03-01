@@ -1,4 +1,4 @@
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '',
+var game = new Phaser.Game(1000, 600, Phaser.AUTO, '',
                            { preload: preload, create: create, update: update });
 
 var player, rocks, bullets;
@@ -10,10 +10,12 @@ function preload() {
     game.load.image('bg', 'assets/spacebg.png');
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('rock1', 'assets/rock1.png');
-    game.load.tileset('rocks', 'assets/rocksheet.png', 64, 64);
+    // game.load.tilesheet DOES NOT EXIST anymore.
+    game.load.spritesheet('rocks', 'assets/rocksheet.png', 64, 64);
 }
  
 function create() {
+    
     game.world.setBounds(0,0,5000, 5000);
     var background = game.add.tileSprite(0,0,game.world.width,game.world.height, 'bg');
 
@@ -103,8 +105,9 @@ function makeRocks(){
     for (var i=0; i < game.world.width; i += 64){
         for (var j=0; j < game.world.height; j += 64){
             if (Math.random() > 0.95){
-                var rock = rocks.create(i, j, 'rock1');
+                var rock = rocks.create(i, j, 'rocks',0);
                 rock.body.immovable = true;
+                rock.health = 4;
                 
             }
         }
@@ -114,5 +117,16 @@ function makeRocks(){
         
 function onBulletHitsRock(bullet, rock){
     bullet.kill();
-    rock.destroy();
+    rock.health -= 1;
+    if (rock.health === 3){
+        rock.frame = 1;
+    } else if (rock.health === 2){
+        rock.frame = 2;
+    } else if (rock.health === 1){
+        rock.frame = 3;
+    }
+
+    if (rock.health <= 0){
+        rock.destroy();
+    }
 }
