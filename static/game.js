@@ -45,6 +45,7 @@ function create() {
     game.camera.follow(player);
     player.events.onKilled.add(onPlayerKilled);
     player.health = 5;
+    player.immovable = true;
     console.log("Health: " + player.health);
     // Rocks
     rocks = game.add.group();
@@ -58,11 +59,8 @@ function create() {
     enemyBullets = game.add.group();
     enemyBullets.createMultiple(50, 'ebullet');
     enemyBullets.setAll('outOfBoundsKill', true);
+    enemyBullets.setAll('immovable', true);
 
-    
-    //var health_hud = game.add.text(20, 20, "Health", {fill: "#FFFFFF"});
-    //health_hud.fixedToCamera = true;
-    //health_hud.cameraOffset.setTo(20,20);
 }
  
 function update() {
@@ -76,10 +74,10 @@ function update() {
         enemy.damage(1);
     });
     game.physics.collide(enemyBullets, rocks, function (ebullet, rock){ebullet.kill();});
-    game.physics.collide(enemyBullets, player, function (ebullet, player){
-        console.log("Player's health is: " + player.health);
+    game.physics.collide(enemyBullets, player, function (player, ebullet){
         player.damage(1);
         ebullet.kill();
+        console.log("Player health is: " + player.health);
     });
         
     game.physics.collide(enemies, rocks);
