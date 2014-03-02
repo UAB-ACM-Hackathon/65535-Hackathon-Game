@@ -43,7 +43,9 @@ function create() {
     player.anchor.setTo(0.5, 0.5);
     player.body.collideWorldBounds = true;
     game.camera.follow(player);
-
+    player.events.onKilled.add(onPlayerKilled);
+    player.health = 5;
+    console.log("Health: " + player.health);
     // Rocks
     rocks = game.add.group();
     makeRocks();
@@ -56,12 +58,15 @@ function create() {
     enemyBullets = game.add.group();
     enemyBullets.createMultiple(50, 'ebullet');
     enemyBullets.setAll('outOfBoundsKill', true);
-    /*var health_hud = game.add.text(20, 20, "This is a test", {fill: "#FFFFFF"});
-    health_hud.fixedToCamera = true;
-    health_hud.cameraOffset.setTo(20,20);*/
+
+    
+    //var health_hud = game.add.text(20, 20, "Health", {fill: "#FFFFFF"});
+    //health_hud.fixedToCamera = true;
+    //health_hud.cameraOffset.setTo(20,20);
 }
  
 function update() {
+    //console.log("Player health: " + player.health);
     player.frame = SHIPFRAMES.NORMAL;
     
     game.physics.collide(player, rocks);
@@ -71,7 +76,11 @@ function update() {
         enemy.damage(1);
     });
     game.physics.collide(enemyBullets, rocks, function (ebullet, rock){ebullet.kill();});
-    //game.physics.collide(enemyBullets, player, function (ebullet, player){
+    game.physics.collide(enemyBullets, player, function (ebullet, player){
+        console.log("Player's health is: " + player.health);
+        player.damage(1);
+        ebullet.kill();
+    });
         
     game.physics.collide(enemies, rocks);
 
@@ -81,7 +90,6 @@ function update() {
     }, this);
     
     if (enemyTimeLastFired + enemyFireDelay < game.time.now){
-        console.log("Time last fired is " + enemyTimeLastFired + ", time is " + game.time.now);
         enemies.forEachAlive(function (enemy){
             fireAtPlayer(enemy);
         }, this);
@@ -146,6 +154,12 @@ function fire(){
     timeLastFired = game.time.now;
 }
 
+function onPlayerKilled(player){
+    console.log("The player has been killed!");
+    var goverText = game.add.text(20, 20, "Game Over!", {fill: "#FFFFFF", size: "100px"});
+    goverText.fixedToCamera = true;
+    goverText.cameraOffset.setTo(20,20);
+}
 function makeRocks(){
     for (var i=0; i < game.world.width; i += 64){
         for (var j=0; j < game.world.height; j += 64){
@@ -169,9 +183,7 @@ function onBulletHitsRock(bullet, rock){
         rock.frame = 3;
     }
 
-    if (rock.health <= 0){
-        rock.destroy();
-    }
+
 }
 
     
@@ -200,7 +212,6 @@ function fireAtPlayer(enemy){
         console.log("Enemy out of bullets!");
         return;
     }
-    console.log("Firing a bullet!");
     bullet.revive();
 
     bullet.x = enemy.body.x + enemy.body.width/2;
