@@ -17,6 +17,7 @@ var fireDelay = 40;
 function preload() {
     game.load.image('bg', 'assets/spacebg.png');
     game.load.image('bullet', 'assets/bullet.png');
+    game.load.image('ebullet', 'assets/ebullet.png');
     game.load.image('enemy1', 'assets/enemy1.png');
     // game.load.tilesheet DOES NOT EXIST anymore.
     game.load.spritesheet('rocks', 'assets/rocksheet.png', 64, 64);
@@ -49,10 +50,11 @@ function create() {
 
     // Enemies
     enemies = game.add.group();
-    makeEnemy(200, 100);
+    makeEnemies(20);
+    enemyTimeLastFired = game.time.now
     // Enemy Bullets
     enemyBullets = game.add.group();
-    enemyBullets.createMultiple(50, 'bullet');
+    enemyBullets.createMultiple(50, 'ebullet');
     enemyBullets.setAll('outOfBoundsKill', true);
     /*var health_hud = game.add.text(20, 20, "This is a test", {fill: "#FFFFFF"});
     health_hud.fixedToCamera = true;
@@ -64,13 +66,29 @@ function update() {
     
     game.physics.collide(player, rocks);
     game.physics.collide(bullets, rocks, onBulletHitsRock);
-    game.physics.collide(bullets, enemies);
+    game.physics.collide(bullets, enemies, function(bullet, enemy){
+        bullet.kill();
+        enemy.damage(1);
+    });
     game.physics.collide(enemyBullets, rocks, function (ebullet, rock){ebullet.kill();});
+    //game.physics.collide(enemyBullets, player, function (ebullet, player){
+        
+    game.physics.collide(enemies, rocks);
 
     enemies.forEachAlive(function (enemy){
-        fireAtPlayer(enemy);
+        enemyMove(enemy);
+        
     }, this);
     
+    if (enemyTimeLastFired + enemyFireDelay < game.time.now){
+        console.log("Time last fired is " + enemyTimeLastFired + ", time is " + game.time.now);
+        enemies.forEachAlive(function (enemy){
+            fireAtPlayer(enemy);
+        }, this);
+        enemyTimeLastFired = game.time.now;
+    }
+    
+              
     if (game.input.keyboard.isDown(Phaser.Keyboard.W)){
         player.frame = SHIPFRAMES.THRUSTING;
         thrust(10);
@@ -85,7 +103,7 @@ function update() {
         player.rotation -= 0.2;
     }
     if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
-        player.frame = SHIPFRAMES.FIRING
+        player.frame = SHIPFRAMES.FIRING;
         fire();
     }
 }
@@ -142,7 +160,7 @@ function makeRocks(){
 
 function onBulletHitsRock(bullet, rock){
     bullet.kill();
-    rock.health -= 1;
+    rock.damage(1);
     if (rock.health === 3){
         rock.frame = 1;
     } else if (rock.health === 2){
@@ -159,15 +177,30 @@ function onBulletHitsRock(bullet, rock){
     
 function makeEnemy(x, y){
     var e = enemies.create(x, y, 'enemy1');
+    e.body.collideWorldBounds = true;
+    e.health = 5;
+    
 }
 
+function makeEnemies(num){
+    for (var i = 0; i < num; i++){
+        makeEnemy(game.world.randomX, game.world.randomY);
+    }
+}
+function enemyMove(enemy){
+    enemy.body.velocity.x += (Math.random() - 0.5) * 10;
+    enemy.body.velocity.y += (Math.random() - 0.5)* 10;
+}
 
 function fireAtPlayer(enemy){
-    if (enemyTimeLastFired + enemyFireDelay > game.time.now) return;
+    
+    if (Phaser.Point.distance(enemy.body, player.body) > 1000) return;
     var bullet = enemyBullets.getFirstDead();
     if (!bullet){
+        console.log("Enemy out of bullets!");
         return;
     }
+    console.log("Firing a bullet!");
     bullet.revive();
 
     bullet.x = enemy.body.x + enemy.body.width/2;
@@ -188,5 +221,5 @@ function fireAtPlayer(enemy){
 
     bullet.lifespan = 5000;
 
-    enemyTimeLastFired = game.time.now;
+    //enemyTimeLastFired = game.time.now;
 }
