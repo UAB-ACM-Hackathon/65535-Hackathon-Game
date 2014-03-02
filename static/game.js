@@ -4,8 +4,9 @@ var SHIPFRAMES = {
     FIRING: 2,
 }
 
+var MAX_HEALTH = 5;
 
-var game = new Phaser.Game(1000, 600, Phaser.AUTO, '',
+var game = new Phaser.Game(1000, 600, Phaser.AUTO, 'phaserdiv',
                            { preload: preload, create: create, update: update });
 
 var player, rocks, bullets, enemies, enemyBullets;
@@ -44,9 +45,10 @@ function create() {
     player.body.collideWorldBounds = true;
     game.camera.follow(player);
     player.events.onKilled.add(onPlayerKilled);
-    player.health = 5;
+    player.health = MAX_HEALTH;
     player.immovable = true;
-    console.log("Health: " + player.health);
+    updateHealthBox();
+    
     // Rocks
     rocks = game.add.group();
     makeRocks();
@@ -77,7 +79,7 @@ function update() {
     game.physics.collide(enemyBullets, player, function (player, ebullet){
         player.damage(1);
         ebullet.kill();
-        console.log("Player health is: " + player.health);
+        updateHealthBox();
     });
         
     game.physics.collide(enemies, rocks);
@@ -231,4 +233,8 @@ function fireAtPlayer(enemy){
     bullet.lifespan = 5000;
 
     //enemyTimeLastFired = game.time.now;
+}
+
+function updateHealthBox(){
+    document.getElementById("healthbox").innerHTML = player.health;
 }
