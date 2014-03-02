@@ -22,6 +22,7 @@ function preload() {
     game.load.image('enemy1', 'assets/enemy1.png');
     game.load.image('health', 'assets/health.png');
     game.load.image('rockparticle', 'assets/rockparticle.png');
+    game.load.image('enemychunks', 'assets/enemychunks.png');
     // game.load.tilesheet DOES NOT EXIST anymore.
     game.load.spritesheet('rocks', 'assets/rocksheet.png', 64, 64);
     game.load.spritesheet('ship', 'assets/shipset.png', 32, 32);
@@ -114,17 +115,17 @@ function update() {
         enemyTimeLastFired = game.time.now;
     }
 
-    if (game.input.keyboard.isDown(Phaser.Keyboard.W)){
+    if (game.input.keyboard.isDown(Phaser.Keyboard.W) || game.input.keyboard.isDown(Phaser.Keyboard.UP)){
         player.frame = SHIPFRAMES.THRUSTING;
         thrust(10);
     }
-    if (game.input.keyboard.isDown(Phaser.Keyboard.S)){
+    if (game.input.keyboard.isDown(Phaser.Keyboard.S) || game.input.keyboard.isDown(Phaser.Keyboard.DOWN)){
         thrust(-5);
     }
-    if (game.input.keyboard.isDown(Phaser.Keyboard.A)){
+    if (game.input.keyboard.isDown(Phaser.Keyboard.A) || game.input.keyboard.isDown(Phaser.Keyboard.LEFT)){
         player.rotation -= 0.2;
     }
-    if (game.input.keyboard.isDown(Phaser.Keyboard.D)){
+    if (game.input.keyboard.isDown(Phaser.Keyboard.D) || game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)){
         player.rotation += 0.2;
     }
     if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
@@ -272,6 +273,9 @@ function makeHealthPack(x, y){
 
 function onEnemyKilled(enemy){
     updateEnemyCountBox();
+    var midx = enemy.body.x + enemy.body.width/2;
+    var midy = enemy.body.y + enemy.body.height/2;
+    emitEnemyParticles(midx,midy);
 }
 
 function updateEnemyCountBox(){
@@ -290,4 +294,16 @@ function emitRockParticles(x, y){
     // map.
     //emitter.destroy();
 }
-    
+
+function emitEnemyParticles(x,y){
+    var emitter = game.add.emitter(x, y, 50);
+    emitter.gravity = 0;
+    emitter.makeParticles('enemychunks');
+    emitter.start(true, 3000, 10, 20);
+
+     // Currently the emitter is left behind.
+    // This is a memory leak. But I don't have time to fix this,
+    // Since it's a hackathon. Fix later. It shouldn't be a problem on a sane
+    // map.
+    //emitter.destroy();
+}
