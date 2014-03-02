@@ -9,7 +9,7 @@ var MAX_HEALTH = 5;
 var game = new Phaser.Game(1000, 600, Phaser.AUTO, 'phaserdiv',
                            { preload: preload, create: create, update: update });
 
-var player, rocks, bullets, enemies, enemyBullets;
+var player, rocks, bullets, enemies, enemyBullets, healthPacks;
 
 var timeLastFired = 0;
 var enemyTimeLastFired = 0;
@@ -20,6 +20,7 @@ function preload() {
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('ebullet', 'assets/ebullet.png');
     game.load.image('enemy1', 'assets/enemy1.png');
+    game.load.image('health', 'assets/health.png');
     // game.load.tilesheet DOES NOT EXIST anymore.
     game.load.spritesheet('rocks', 'assets/rocksheet.png', 64, 64);
     game.load.spritesheet('ship', 'assets/shipset.png', 32, 32);
@@ -52,16 +53,23 @@ function create() {
     // Rocks
     rocks = game.add.group();
     makeRocks();
+    rocks.forEach(function (rock){
+        rock.events.onKilled.add(onRockKilled);
+    });
 
     // Enemies
     enemies = game.add.group();
     makeEnemies(20);
     enemyTimeLastFired = game.time.now
+    
     // Enemy Bullets
     enemyBullets = game.add.group();
     enemyBullets.createMultiple(50, 'ebullet');
     enemyBullets.setAll('outOfBoundsKill', true);
     enemyBullets.setAll('immovable', true);
+
+    // Health packs
+    healthPacks = game.add.group();
 
 }
  
@@ -83,6 +91,14 @@ function update() {
     });
         
     game.physics.collide(enemies, rocks);
+
+
+    game.physics.collide(player, healthPacks, function(player, pack){
+        if (player.health < MAX_HEALTH){
+            player.health += 1;
+            pack.destroy();
+        }
+    });
 
     enemies.forEachAlive(function (enemy){
         enemyMove(enemy);
@@ -238,3 +254,14 @@ function fireAtPlayer(enemy){
 function updateHealthBox(){
     document.getElementById("healthbox").innerHTML = player.health;
 }
+
+function onRockKilled(rock){
+    console.log("Rock is dying");
+    makeHealthPack(rock.body.x + rock.body.width/2, rock.body.y + rock.body.height/2);
+    updateHealthBox();
+}
+
+function makeHealthPack(x, y){
+    healthPacks.create(x, y, 'health');
+}
+
