@@ -21,6 +21,7 @@ function preload() {
     game.load.image('ebullet', 'assets/ebullet.png');
     game.load.image('enemy1', 'assets/enemy1.png');
     game.load.image('health', 'assets/health.png');
+    game.load.image('rockparticle', 'assets/rockparticle.png');
     // game.load.tilesheet DOES NOT EXIST anymore.
     game.load.spritesheet('rocks', 'assets/rocksheet.png', 64, 64);
     game.load.spritesheet('ship', 'assets/shipset.png', 32, 32);
@@ -112,8 +113,7 @@ function update() {
         }, this);
         enemyTimeLastFired = game.time.now;
     }
-    
-              
+
     if (game.input.keyboard.isDown(Phaser.Keyboard.W)){
         player.frame = SHIPFRAMES.THRUSTING;
         thrust(10);
@@ -259,7 +259,10 @@ function updateHealthBox(){
 
 function onRockKilled(rock){
     console.log("Rock is dying");
-    makeHealthPack(rock.body.x + rock.body.width/2, rock.body.y + rock.body.height/2);
+    var midx = rock.body.x + rock.body.width/2;
+    var midy = rock.body.y + rock.body.height/2;
+    makeHealthPack(midx, midy);
+    emitRockParticles(midx, midy);
     updateHealthBox();
 }
 
@@ -274,3 +277,17 @@ function onEnemyKilled(enemy){
 function updateEnemyCountBox(){
     document.getElementById("enemycountbox").innerHTML = enemies.countLiving()
 }
+
+function emitRockParticles(x, y){
+    var emitter = game.add.emitter(x, y, 50);
+    emitter.gravity = 0;
+    emitter.makeParticles('rockparticle');
+    emitter.start(true, 1000, 10, 20);
+    
+    // Currently the emitter is left behind.
+    // This is a memory leak. But I don't have time to fix this,
+    // Since it's a hackathon. Fix later. It shouldn't be a problem on a sane
+    // map.
+    //emitter.destroy();
+}
+    
