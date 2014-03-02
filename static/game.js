@@ -61,7 +61,7 @@ function create() {
     enemies = game.add.group();
     makeEnemies(20);
     enemyTimeLastFired = game.time.now
-    
+    updateEnemyCountBox();
     // Enemy Bullets
     enemyBullets = game.add.group();
     enemyBullets.createMultiple(50, 'ebullet');
@@ -84,7 +84,7 @@ function update() {
         enemy.damage(1);
     });
     game.physics.collide(enemyBullets, rocks, function (ebullet, rock){ebullet.kill();});
-    game.physics.collide(enemyBullets, player, function (player, ebullet){
+    game.physics.overlap(enemyBullets, player, function (player, ebullet){
         player.damage(1);
         ebullet.kill();
         updateHealthBox();
@@ -93,11 +93,12 @@ function update() {
     game.physics.collide(enemies, rocks);
 
 
-    game.physics.collide(player, healthPacks, function(player, pack){
+    game.physics.overlap(player, healthPacks, function(player, pack){
         if (player.health < MAX_HEALTH){
             player.health += 1;
             pack.destroy();
         }
+        updateHealthBox();
     });
 
     enemies.forEachAlive(function (enemy){
@@ -121,10 +122,10 @@ function update() {
         thrust(-5);
     }
     if (game.input.keyboard.isDown(Phaser.Keyboard.A)){
-        player.rotation += 0.2;
+        player.rotation -= 0.2;
     }
     if (game.input.keyboard.isDown(Phaser.Keyboard.D)){
-        player.rotation -= 0.2;
+        player.rotation += 0.2;
     }
     if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
         player.frame = SHIPFRAMES.FIRING;
@@ -207,6 +208,7 @@ function makeEnemy(x, y){
     var e = enemies.create(x, y, 'enemy1');
     e.body.collideWorldBounds = true;
     e.health = 5;
+    e.events.onKilled.add(onEnemyKilled);
     
 }
 
@@ -265,3 +267,10 @@ function makeHealthPack(x, y){
     healthPacks.create(x, y, 'health');
 }
 
+function onEnemyKilled(enemy){
+    updateEnemyCountBox();
+}
+
+function updateEnemyCountBox(){
+    document.getElementById("enemycountbox").innerHTML = enemies.countLiving()
+}
